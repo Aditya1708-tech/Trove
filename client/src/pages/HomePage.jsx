@@ -256,7 +256,7 @@ export default function HomePage() {
         productAPI.getProducts({ sort: 'rating', limit: 8 }),
       ]);
       const value = (index, key) => requests[index].status === 'fulfilled'
-        ? requests[index].value.data.data[key]
+        ? requests[index].value.data.data[key] || []
         : [];
 
       setBanners(value(0, 'banners'));
@@ -300,7 +300,7 @@ export default function HomePage() {
       <CategoryGrid />
 
       {/* Flash Deals */}
-      <FlashDealsSection products={flashDeals} />
+      <FlashDealsSection products={flashDeals} loading={loadingProducts} />
 
       {/* Featured Products */}
       <ProductSection
@@ -308,6 +308,7 @@ export default function HomePage() {
         subtitle="Curated picks just for you"
         icon={<Star size={20} className="text-amber-400 fill-amber-400" />}
         products={featured}
+        loading={loadingProducts}
         viewAllHref="/search?isFeatured=true"
       />
 
@@ -317,6 +318,7 @@ export default function HomePage() {
         subtitle="Fresh drops you'll love"
         icon={<Zap size={20} className="text-primary-500" />}
         products={newArrivals}
+        loading={loadingProducts}
         viewAllHref="/search?isNewArrival=true"
       />
 
@@ -348,6 +350,7 @@ export default function HomePage() {
         subtitle="Most loved by our customers"
         icon={<TrendingUp size={20} className="text-green-500" />}
         products={bestSellers}
+        loading={loadingProducts}
         viewAllHref="/search?isBestSeller=true"
       />
 
@@ -357,6 +360,7 @@ export default function HomePage() {
         subtitle="Based on top ratings"
         icon={<Gift size={20} className="text-purple-500" />}
         products={recommended}
+        loading={loadingProducts}
         viewAllHref="/search?sort=rating"
       />
     </div>
@@ -364,7 +368,7 @@ export default function HomePage() {
 }
 
 // ── Reusable section ──────────────────────────────────────────────────
-function ProductSection({ title, subtitle, icon, products, viewAllHref }) {
+function ProductSection({ title, subtitle, icon, products, viewAllHref, loading }) {
   return (
     <section>
       <div className="flex items-center justify-between mb-5">
@@ -380,9 +384,11 @@ function ProductSection({ title, subtitle, icon, products, viewAllHref }) {
         </Link>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-4">
-        {products.length > 0
+        {loading
+          ? Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} />)
+          : products.length > 0
           ? products.map((p) => <ProductCard key={p._id} product={p} />)
-          : Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} />)
+          : <p className="col-span-full text-sm text-gray-400 py-6 text-center">No products available in this section.</p>
         }
       </div>
     </section>

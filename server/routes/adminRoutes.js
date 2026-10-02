@@ -13,15 +13,17 @@ const imageStorage = new CloudinaryStorage({
 });
 const uploadImage = multer({ storage: imageStorage }).single('image');
 
+// Public read routes for categories and banners
+router.get('/categories', adminController.getCategories);
+router.get('/banners',    adminController.getBanners);
+
+// Protected admin-only routes
 router.use(protect, restrict('admin'));
 
 // Dashboard
 router.get('/dashboard',    adminController.getDashboard);
 router.get('/low-stock',    adminController.getLowStockReport);
 router.get('/products',     adminController.getProducts);
-
-// Categories
-router.get('/categories',        adminController.getCategories);
 router.post('/categories',       uploadImage, adminController.createCategory);
 router.patch('/categories/:id',  uploadImage, adminController.updateCategory);
 router.delete('/categories/:id', adminController.deleteCategory);
@@ -33,7 +35,6 @@ router.patch('/coupons/:id',  adminController.updateCoupon);
 router.delete('/coupons/:id', adminController.deleteCoupon);
 
 // Banners
-router.get('/banners',        adminController.getBanners);
 router.post('/banners',       uploadImage, adminController.createBanner);
 router.patch('/banners/:id',  uploadImage, adminController.updateBanner);
 router.delete('/banners/:id', adminController.deleteBanner);

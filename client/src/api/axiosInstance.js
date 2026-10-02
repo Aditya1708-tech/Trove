@@ -45,7 +45,12 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const isAuthEndpoint = originalRequest?.url?.includes('/auth/login') ||
+                           originalRequest?.url?.includes('/auth/register') ||
+                           originalRequest?.url?.includes('/auth/refresh');
+    const hasToken = Boolean(localStorage.getItem('accessToken'));
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint && hasToken) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -61,7 +66,11 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const { data } = await api.post('/auth/refresh');
+        const { data } = await axios.post(
+          `${BASE_URL}/auth/refresh`,
+          {},
+          { withCredentials: true }
+        );
         const newToken = data.data.accessToken;
         localStorage.setItem('accessToken', newToken);
         processQueue(null, newToken);
@@ -70,7 +79,6 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         localStorage.removeItem('accessToken');
-        // Optionally redirect to login
         if (window.location.pathname !== '/login') {
           window.dispatchEvent(new CustomEvent('auth:logout'));
         }
